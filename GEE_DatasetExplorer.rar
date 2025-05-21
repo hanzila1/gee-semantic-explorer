@@ -1,0 +1,25 @@
+import zipfile
+import os
+import shutil
+from github import Github
+
+def extract_zip(zip_path, extract_to):
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+
+def upload_files_to_github(repo_name, local_folder, github_token):
+    g = Github(github_token)
+    user = g.get_user()
+    repo = user.create_repo(repo_name)
+    for root, _, files in os.walk(local_folder):
+        for file in files:
+            file_path = os.path.join(root, file)
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            rel_path = os.path.relpath(file_path, local_folder)
+            repo.create_file(rel_path, f"Add {rel_path}", content, branch="main")
+
+# Example usage:
+# extract_zip('your_files.zip', 'temp_folder')
+# upload_files_to_github('new-repo', 'temp_folder', 'your_github_token')
+# shutil.rmtree('temp_folder')
